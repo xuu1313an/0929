@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHER-X // 全球首款聚變動力超級跑車</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            cyan: '#00f0ff',
+                            purple: '#7000ff',
+                            blue: '#0066ff',
+                            dark: '#080b12',
+                            card: 'rgba(12, 18, 32, 0.75)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Three.js & OrbitControls CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <style>
+        /* Custom scrollbar and glassmorphism styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #080b12;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f0ff;
+        }
+        .glass-panel {
+            background: rgba(12, 18, 32, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+        }
+        .glass-card {
+            background: rgba(16, 24, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            border-color: rgba(0, 240, 255, 0.5);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(0, 240, 255, 0.3);
+        }
+        .glow-text {
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+        }
+        .btn-cyber {
+            background: linear-gradient(135deg, #00f0ff 0%, #0066ff 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-cyber:hover {
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.7);
+            transform: scale(1.02);
+        }
+        /* Holographic Blueprint Grid Shader Effect */
+        .holo-grid {
+            background-image: linear-gradient(to right, rgba(0,240,255,0.08) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(0,240,255,0.08) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-[#06080e] text-gray-100 font-sans antialiased selection:bg-cyan-400 selection:text-black overflow-x-hidden">
+
+    <!-- Header / Navigation Bar -->
+    <header class="fixed top-0 left-0 right-0 z-50 px-4 py-3 lg:px-8">
+        <nav class="max-w-7xl mx-auto glass-panel rounded-2xl px-6 py-3 flex items-center justify-between shadow-2xl">
+            <!-- Logo -->
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-400 via-blue-600 to-purple-600 flex items-center justify-center font-black text-xl text-black shadow-lg shadow-cyan-500/30 group-hover:rotate-12 transition-transform">
+                    Æ
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-extrabold tracking-widest text-lg bg-clip-text text-transparent bg-gradient-to-r from-white via-cyan-100 to-cyan-400">AETHER-X</span>
+                    <span class="text-[9px] tracking-[0.3em] text-cyan-400 font-bold -mt-1 uppercase">Fusion Propulsion</span>
+                </div>
+            </a>
+
+            <!-- Nav Links -->
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+                <a href="#overview" class="hover:text-cyan-400 transition-colors">概覽</a>
+                <a href="#telemetry" class="hover:text-cyan-400 transition-colors">全像診斷 HUD</a>
+                <a href="#features" class="hover:text-cyan-400 transition-colors">核心科技</a>
+                <a href="#customizer" class="hover:text-cyan-400 transition-colors">客製化配置</a>
+            </div>
+
+            <!-- Action Button -->
+            <div class="flex items-center gap-3">
+                <button onclick="openBookingModal()" class="btn-cyber text-black font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl flex items-center gap-2">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>預訂試駕</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Full-Screen Hero Banner Section -->
+    <section id="overview" class="relative w-full h-screen min-h-[680px] flex items-center justify-center overflow-hidden">
+        
+        <!-- Full-Screen Background Car Image Container with Parallax Effect -->
+        <div id="parallax-container" class="absolute inset-0 w-full h-full overflow-hidden">
+            <!-- Hypercar Realistic Background Photo (Clean studio background focused on supercar) -->
+            <img id="parallax-car-img" 
+                 src="https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?auto=format&fit=crop&w=2400&q=80" 
+                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&w=2400&q=80';"
+                 alt="AETHER-X Fullscreen Hypercar Showcase" 
+                 class="w-full h-full object-cover object-center filter brightness-110 contrast-105 transition-transform duration-300 ease-out transform scale-110">
+            
+            <!-- Dark Cyber Gradients for Readability & Contrast -->
+            <div class="absolute inset-0 bg-gradient-to-t from-[#06080e] via-[#06080e]/30 to-[#06080e]/60 pointer-events-none"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-[#06080e]/90 via-[#06080e]/40 to-transparent pointer-events-none"></div>
+            <div id="parallax-bg-glow" class="absolute inset-0 holo-grid opacity-25 pointer-events-none"></div>
+        </div>
+
+        <!-- Fullscreen Text & Action Overlay -->
+        <div id="hero-content-wrapper" class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-16 flex flex-col justify-center h-full transition-all duration-75 ease-out">
+            <div class="max-w-2xl space-y-6">
+                <!-- Badge -->
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-panel border-cyan-400/40 text-cyan-300 text-xs font-bold tracking-wider uppercase">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                    2026 旗艦量子聚變超跑
+                </div>
+
+                <!-- Headline -->
+                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-tight">
+                    極致速度 <br>
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 glow-text">
+                        AETHER-X Vision
+                    </span>
+                </h1>
+
+                <!-- Subtitle -->
+                <p class="text-gray-300 text-base sm:text-lg max-w-xl leading-relaxed">
+                    結合四輪微型聚變馬達與全固態量子電芯，提供 2,100 Nm 瞬時扭力與 0-100 km/h 1.75 秒極限加速度。
+                </p>
+
+                <!-- Hero Action Buttons -->
+                <div class="flex flex-wrap items-center gap-4 pt-2">
+                    <button onclick="openBookingModal()" class="btn-cyber text-black font-bold text-sm px-7 py-3.5 rounded-xl flex items-center gap-3 shadow-lg shadow-cyan-500/25">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>預訂專屬試駕</span>
+                    </button>
+                    <a href="#telemetry" class="glass-panel text-white font-semibold text-sm px-7 py-3.5 rounded-xl border border-white/20 hover:border-cyan-400 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-cyan-400"></i>
+                        <span>探索全像 HUD</span>
+                    </a>
+                </div>
+
+                <!-- Quick Specs Overlay Grid -->
+                <div class="grid grid-cols-3 gap-3 sm:gap-6 pt-6 border-t border-white/10 max-w-lg">
+                    <div>
+                        <div class="text-[10px] sm:text-xs text-gray-400 font-mono">0 - 100 KM/H</div>
+                        <div class="text-xl sm:text-2xl font-black text-cyan-400 font-mono">1.75s</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] sm:text-xs text-gray-400 font-mono">最高時速</div>
+                        <div class="text-xl sm:text-2xl font-black text-purple-400 font-mono">420+ <span class="text-xs">km/h</span></div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] sm:text-xs text-gray-400 font-mono">峰值馬力</div>
+                        <div class="text-xl sm:text-2xl font-black text-emerald-400 font-mono">1,850 HP</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll Down Indicator -->
+        <a href="#telemetry" class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 opacity-80 hover:opacity-100 transition-all cursor-pointer group">
+            <span class="text-[10px] font-mono text-cyan-400 tracking-widest uppercase group-hover:text-cyan-300">Scroll Down</span>
+            <i class="fa-solid fa-chevron-down text-cyan-400 animate-bounce text-xs group-hover:translate-y-1 transition-transform"></i>
+        </a>
+    </section>
+
+    <!-- NEW SECTION: Interactive Holographic Blueprint & Diagnostic Cockpit HUD -->
+    <section id="telemetry" class="py-24 relative bg-slate-950/80 border-y border-cyan-500/20 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-xs font-bold text-cyan-400 tracking-widest uppercase mb-2">AETHER Neural Diagnostic System</h2>
+                <p class="text-3xl sm:text-5xl font-black">AETHER-X 全像藍圖與動態遙測 HUD</p>
+                <p class="text-gray-400 mt-4 text-base">即時分析車體空氣動力學、聚變驅動模組與電池健康狀態數據。</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                
+                <!-- Left Diagnostic Controls -->
+                <div class="lg:col-span-4 space-y-4">
+                    <div class="glass-panel p-5 rounded-2xl border-cyan-500/30">
+                        <div class="text-xs font-bold text-cyan-400 mb-3 tracking-wider uppercase flex items-center justify-between">
+                            <span>系統診斷模組</span>
+                            <i class="fa-solid fa-microchip"></i>
+                        </div>
+                        <div class="space-y-2.5">
+                            <button onclick="switchHudMode('fusion')" id="hud-btn-fusion" class="w-full p-3.5 rounded-xl border border-cyan-400 bg-cyan-500/20 text-cyan-300 font-bold text-xs flex items-center justify-between transition-all">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-atom"></i> 四輪量子聚變引擎</span>
+                                <span class="text-[10px] bg-cyan-400/20 px-2 py-0.5 rounded text-cyan-300">正常</span>
+                            </button>
+                            <button onclick="switchHudMode('aero')" id="hud-btn-aero" class="w-full p-3.5 rounded-xl border border-white/10 bg-slate-900/50 text-gray-300 font-bold text-xs flex items-center justify-between transition-all hover:border-cyan-500/50">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-wind"></i> 主動式空力尾翼與下壓力</span>
+                                <span class="text-[10px] bg-purple-400/20 px-2 py-0.5 rounded text-purple-300">650 KG</span>
+                            </button>
+                            <button onclick="switchHudMode('battery')" id="hud-btn-battery" class="w-full p-3.5 rounded-xl border border-white/10 bg-slate-900/50 text-gray-300 font-bold text-xs flex items-center justify-between transition-all hover:border-cyan-500/50">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-car-battery"></i> 固態電芯熱力學矩陣</span>
+                                <span class="text-[10px] bg-emerald-400/20 px-2 py-0.5 rounded text-emerald-300">32°C</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Drive Mode Simulator Switcher -->
+                    <div class="glass-panel p-5 rounded-2xl border-white/10">
+                        <div class="text-xs font-bold text-gray-400 mb-3 tracking-wider uppercase">駕駛動態模式切換</div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setDriveMode('eco')" id="mode-eco" class="py-2.5 px-2 rounded-xl text-xs font-bold border border-white/10 bg-slate-900 text-gray-400 hover:text-white transition-all">ECO 節能</button>
+                            <button onclick="setDriveMode('sport')" id="mode-sport" class="py-2.5 px-2 rounded-xl text-xs font-bold border border-cyan-400 bg-cyan-500/20 text-cyan-300 transition-all">SPORT 運動</button>
+                            <button onclick="setDriveMode('track')" id="mode-track" class="py-2.5 px-2 rounded-xl text-xs font-bold border border-white/10 bg-slate-900 text-gray-400 hover:text-white transition-all">TRACK 賽道</button>
+                        </div>
+                    </div>
+
+                    <!-- Live G-Force Simulator Box -->
+                    <div class="glass-panel p-5 rounded-2xl border-white/10 flex items-center justify-between">
+                        <div>
+                            <div class="text-xs text-gray-400">側向 G 值動態感測</div>
+                            <div id="g-force-val" class="text-2xl font-black text-cyan-400 mt-1">1.85 G</div>
+                        </div>
+                        <div class="w-12 h-12 rounded-full border border-cyan-400/40 flex items-center justify-center relative">
+                            <div id="g-dot" class="w-3 h-3 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400 transition-all duration-300"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center Blueprint Holographic Interface Display -->
+                <div class="lg:col-span-8 glass-panel p-6 sm:p-8 rounded-3xl border-cyan-500/30 holo-grid relative min-h-[420px] flex flex-col justify-between shadow-2xl">
+                    <!-- HUD Top Status Overlay -->
+                    <div class="flex items-center justify-between border-b border-cyan-500/20 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full bg-cyan-400 animate-ping"></div>
+                            <span id="hud-status-title" class="font-mono text-sm font-bold text-cyan-300">SYSTEM: FUSION_PROPULSION_ONLINE</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="text-[10px] font-mono bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 px-2.5 py-1 rounded-md">DIAGNOSTIC_MODE: REALTIME</span>
+                        </div>
+                    </div>
+
+                    <!-- Hologram Graphical Display -->
+                    <div id="blueprint-graphic" class="my-8 relative flex flex-col items-center justify-center text-center py-10 transition-all">
+                        <div class="w-full max-w-md mx-auto relative">
+                            <!-- Futuristic Blueprint Vector Car Art -->
+                            <svg viewBox="0 0 600 220" class="w-full h-auto drop-shadow-[0_0_15px_rgba(0,240,255,0.6)]">
+                                <!-- Outer Chassis Grid Wireframe -->
+                                <path d="M 50 140 Q 120 120, 200 80 Q 300 50, 420 80 Q 500 110, 560 140 L 580 160 L 500 170 L 100 170 Z" fill="none" stroke="#00f0ff" stroke-width="2" stroke-dasharray="6,4" />
+                                <!-- Cockpit Canopy Bubble -->
+                                <path d="M 220 85 Q 300 40, 390 80 Q 330 85, 220 85 Z" fill="rgba(0, 240, 255, 0.15)" stroke="#00f0ff" stroke-width="2" />
+                                <!-- Glowing Wheels -->
+                                <circle cx="150" cy="165" r="38" fill="none" stroke="#00f0ff" stroke-width="3" />
+                                <circle cx="150" cy="165" r="22" fill="none" stroke="#7000ff" stroke-width="2" />
+                                <circle cx="470" cy="165" r="38" fill="none" stroke="#00f0ff" stroke-width="3" />
+                                <circle cx="470" cy="165" r="22" fill="none" stroke="#7000ff" stroke-width="2" />
+                                <!-- Core Engine Node -->
+                                <circle id="hud-node" cx="310" cy="130" r="14" fill="#00f0ff" class="animate-pulse" />
+                            </svg>
+                        </div>
+                        <p id="hud-description" class="text-sm text-cyan-200/90 max-w-lg mt-4 leading-relaxed font-mono">
+                            > 四獨立電磁馬達發揮 100% 扭力向量分配。即時監測各輪端爪力與滑移率。
+                        </p>
+                    </div>
+
+                    <!-- Telemetry Meters Footer -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-cyan-500/20">
+                        <div>
+                            <div class="text-[10px] text-gray-400 font-mono">即時輸出扭力</div>
+                            <div id="meter-torque" class="text-lg font-black text-cyan-400 font-mono">2,100 Nm</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-gray-400 font-mono">電池模組溫度</div>
+                            <div id="meter-temp" class="text-lg font-black text-emerald-400 font-mono">32.4 °C</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-gray-400 font-mono">空氣下壓力</div>
+                            <div id="meter-aero" class="text-lg font-black text-purple-400 font-mono">650 KG</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-gray-400 font-mono">算力負載</div>
+                            <div id="meter-cpu" class="text-lg font-black text-blue-400 font-mono">14.2 TFLOPS</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Highlights Section -->
+    <section id="features" class="py-24 relative bg-slate-950/60 border-t border-cyan-500/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-28">
+            
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-xs font-bold text-cyan-400 tracking-widest uppercase mb-2">Technological Supremacy</h2>
+                <p class="text-3xl sm:text-5xl font-black">顛覆極限的 4 大核心產品亮點</p>
+                <p class="text-gray-400 mt-4 text-sm sm:text-base">探索 AETHER-X 前瞻動力、航太架構與神經駕駛科技。</p>
+            </div>
+
+            <!-- BLOCK 1: Fusion Propulsion (Left Image, Right Content) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+                <div class="lg:col-span-6 order-1">
+                    <div class="relative group rounded-3xl overflow-hidden glass-panel border border-cyan-500/30 shadow-2xl">
+                        <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1200&q=80" 
+                             alt="Quantum Fusion Drive Engine" 
+                             class="w-full h-[340px] sm:h-[420px] object-cover object-center group-hover:scale-105 transition-transform duration-700 filter brightness-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#06080e] via-transparent to-transparent opacity-80"></div>
+                        <div class="absolute bottom-4 left-4 right-4 p-4 glass-panel rounded-2xl border-cyan-400/20 flex justify-between items-center">
+                            <span class="text-xs font-mono text-cyan-400 font-bold uppercase"><i class="fa-solid fa-atom mr-2"></i>Module 01 // FUSION_CORE</span>
+                            <span class="text-xs font-mono text-gray-300">1,850 HP / 2,100 Nm</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-6 order-2 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-400 text-xs font-mono font-bold uppercase tracking-wider">
+                        <i class="fa-solid fa-bolt"></i> 核心動力矩陣
+                    </div>
+                    <h3 class="text-3xl sm:text-4xl font-black text-white leading-tight">
+                        四輪微型聚變馬達 <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">微秒級向量扭力分配</span>
+                    </h3>
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed">
+                        搭載專利四輪獨立微型量子聚變推進單元，即時精準分配輪端驅動力。超越傳統電驅架構，在極限彎道中提供無與倫比的循跡性與極速爆發力。
+                    </p>
+                    <div class="grid grid-cols-3 gap-4 pt-4 border-t border-white/10">
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-mono">響應速度</div>
+                            <div class="text-xl font-black text-cyan-400 font-mono">0.001 秒</div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-mono">扭力向量</div>
+                            <div class="text-xl font-black text-cyan-400 font-mono">360° 獨立</div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-mono">能量轉換率</div>
+                            <div class="text-xl font-black text-cyan-400 font-mono">98.5%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLOCK 2: Carbon Titanium Chassis (Right Image, Left Content) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+                <div class="lg:col-span-6 order-2 lg:order-1 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-500/10 border border-purple-400/30 text-purple-400 text-xs font-mono font-bold uppercase tracking-wider">
+                        <i class="fa-solid fa-shield-halved"></i> 車體結構工藝
+                    </div>
+                    <h3 class="text-3xl sm:text-4xl font-black text-white leading-tight">
+                        液態銀碳鈦單體座艙 <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">輕量化與極致剛性重塑</span>
+                    </h3>
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed">
+                        融合航太級 3D 列印鈦合金與多層碳纖維車架，具備 55,000 Nm/deg 的超高扭轉剛性。全景雙層防爆量子玻璃穹頂，兼具未來質感與競速防護能力。
+                    </p>
+                    <div class="grid grid-cols-3 gap-4 pt-4 border-t border-white/10">
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-mono">扭轉剛性</div>
+                            <div class="text-xl font-black text-purple-400 font-mono">55,000 Nm</div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-mono">車架減重</div>
+                            <div class="text-xl font-black text-purple-400 font-mono">-35%</div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-mono">防護評級</div>
+                            <div class="text-xl font-black text-purple-400 font-mono">LEVEL 5</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-6 order-1 lg:order-2">
+                    <div class="relative group rounded-3xl overflow-hidden glass-panel border border-purple-500/30 shadow-2xl">
+                        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80" 
+                             alt="Aerospace Carbon Titanium Chassis" 
+                             class="w-full h-[340px] sm:h-[420px] object-cover object-center group-hover:scale-105 transition-transform duration-700 filter brightness-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#06080e] via-transparent to-transparent opacity-80"></div>
+                        <div class="absolute bottom-4 left-4 right-4 p-4 glass-panel rounded-2xl border-purple-400/20 flex justify-between items-center">
+                            <span class="text-xs font-mono text-purple-400 font-bold uppercase"><i class="fa-solid fa-cube mr-2"></i>Module 02 // CARBON_TITANIUM</span>
+                            <span class="text-xs font-mono text-gray-300">55,000 Nm/deg Stiffness</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLOCK 3: Active Aerodynamics (Left Image, Right Content) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+                <div class="lg:col-span-6 order-1">
+                    <div class="relative group rounded-3xl overflow-hidden glass-panel border border-emerald-500/30 shadow-2xl">
+                        <img src="https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&w=1200&q=80" 
+                             alt="Active Aerodynamics Wind Tunnel" 
+                             class="w-full h-[340px] sm:h-[420px] object-cover object-center group-hover:scale-105 transition-transform duration-700 filter brightness-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#06080e] via-transparent to-transparent opacity-80"></div>
+                        <div class="absolute bottom-4 left-4 right-4 p-4 glass-panel rounded-2xl border-emerald-400/20 flex justify-between items-center">
+                            <span class="text-xs font-mono text-emerald-400 font-bold uppercase"><i class="fa-solid fa-wind mr-2"></i>Module 03 // ACTIVE_AERO</span>
+                            <span class="text-xs font-mono text-gray-300">650 KG Downforce @ 350 km/h</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-6 order-2 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/30 text-emerald-400 text-xs font-mono font-bold uppercase tracking-wider">
+                        <i class="fa-solid fa-wind"></i> 主動式空力學
+                    </div>
+                    <h3 class="text-3xl sm:text-4xl font-black text-white leading-tight">
+                        主動式風洞氣流控制 <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">地面效應與流線下壓力</span>
+                    </h3>
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed">
+                        透過智能尾翼角度調校與底盤文氏管氣流效應，車輛在 350 km/h 高速行駛時可產生高達 650 kg 的垂直下壓力，如同一把貼地飛行的利刃。
+                    </p>
+                    <div class="grid grid-cols-3 gap-4 pt-4 border-t border-white/10">
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-mono">風阻係數</div>
+                            <div class="text-xl font-black text-emerald-400 font-mono">0.19 Cd</div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-mono">極速下壓力</div>
+                            <div class="text-xl font-black text-emerald-400 font-mono">650 KG</div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-mono">主動翼面</div>
+                            <div class="text-xl font-black text-emerald-400 font-mono">4 獨立板</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLOCK 4: AI & Holographic Cockpit (Right Image, Left Content) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+                <div class="lg:col-span-6 order-2 lg:order-1 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-500/10 border border-blue-400/30 text-blue-400 text-xs font-mono font-bold uppercase tracking-wider">
+                        <i class="fa-solid fa-brain"></i> 賽博智慧神經網路
+                    </div>
+                    <h3 class="text-3xl sm:text-4xl font-black text-white leading-tight">
+                        全像 HUD 與 AETHER AI <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">人車合一的賽道級駕駛艙</span>
+                    </h3>
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed">
+                        將 8K 全像視野直接投影於量子風鏡上，即時顯示賽道最佳路線、煞車點標記與各輪滑移率。AETHER AI 大腦隨時學習駕駛習慣並調整底盤反應。
+                    </p>
+                    <div class="grid grid-cols-3 gap-4 pt-4 border-t border-white/10">
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-mono">HUD 解析度</div>
+                            <div class="text-xl font-black text-blue-400 font-mono">8K AR</div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-mono">AI 算力</div>
+                            <div class="text-xl font-black text-blue-400 font-mono">100 TFLOPS</div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-mono">感測雷達</div>
+                            <div class="text-xl font-black text-blue-400 font-mono">360° 光達</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-6 order-1 lg:order-2">
+                    <div class="relative group rounded-3xl overflow-hidden glass-panel border border-blue-500/30 shadow-2xl">
+                        <img src="https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&w=1200&q=80" 
+                             alt="Holographic Futuristic Cockpit" 
+                             class="w-full h-[340px] sm:h-[420px] object-cover object-center group-hover:scale-105 transition-transform duration-700 filter brightness-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#06080e] via-transparent to-transparent opacity-80"></div>
+                        <div class="absolute bottom-4 left-4 right-4 p-4 glass-panel rounded-2xl border-blue-400/20 flex justify-between items-center">
+                            <span class="text-xs font-mono text-blue-400 font-bold uppercase"><i class="fa-solid fa-microchip mr-2"></i>Module 04 // AI_COCKPIT</span>
+                            <span class="text-xs font-mono text-gray-300">100 TFLOPS Neural Engine</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Configurator Section -->
+    <section id="customizer" class="py-24 bg-slate-950 border-t border-white/10 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h2 class="text-xs font-bold text-cyan-400 tracking-widest uppercase mb-2">Bespoke Studio</h2>
+                <p class="text-3xl sm:text-5xl font-black">訂製您的專屬 AETHER-X</p>
+            </div>
+
+            <div class="glass-panel p-8 sm:p-12 rounded-3xl border-white/10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <!-- Color Selector Buttons -->
+                <div class="lg:col-span-6 space-y-6">
+                    <h3 class="text-xl font-bold">專屬塗裝與輪圈選配</h3>
+                    
+                    <div>
+                        <label class="text-xs text-gray-400 mb-2 block">客製車塗裝式樣</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-3.5 rounded-xl border border-cyan-400/40 bg-cyan-500/10 flex items-center gap-3">
+                                <span class="w-6 h-6 rounded-full bg-slate-300 shadow"></span>
+                                <span class="text-xs font-bold text-cyan-200">Liquid Silver 液態銀</span>
+                            </div>
+                            <div class="p-3.5 rounded-xl border border-white/10 glass-card flex items-center gap-3">
+                                <span class="w-6 h-6 rounded-full bg-slate-900 shadow"></span>
+                                <span class="text-xs font-bold text-gray-300">Matte Titanium 霧面鈦</span>
+                            </div>
+                            <div class="p-3.5 rounded-xl border border-white/10 glass-card flex items-center gap-3">
+                                <span class="w-6 h-6 rounded-full bg-cyan-400 shadow"></span>
+                                <span class="text-xs font-bold text-gray-300">Quantum Cyan 量子青</span>
+                            </div>
+                            <div class="p-3.5 rounded-xl border border-white/10 glass-card flex items-center gap-3">
+                                <span class="w-6 h-6 rounded-full bg-red-600 shadow"></span>
+                                <span class="text-xs font-bold text-gray-300">Crimson Red 賽博紅</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-gray-400 mb-2 block">鍛造輪圈霓虹光環選配</label>
+                        <div class="flex gap-4">
+                            <span class="px-4 py-2 bg-cyan-500/20 border border-cyan-400 rounded-lg text-xs font-bold text-cyan-300">青藍霓虹</span>
+                            <span class="px-4 py-2 bg-purple-500/10 border border-white/10 rounded-lg text-xs font-bold text-gray-400">魅紫光環</span>
+                            <span class="px-4 py-2 bg-pink-500/10 border border-white/10 rounded-lg text-xs font-bold text-gray-400">霓虹粉光</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Box & CTA -->
+                <div class="lg:col-span-6 bg-slate-900/90 p-8 rounded-2xl border border-cyan-500/30 space-y-6">
+                    <div>
+                        <span class="text-xs text-gray-400">專屬訂製預估起始價</span>
+                        <div class="text-4xl font-black text-cyan-400 mt-1">$380,000 USD</div>
+                        <p class="text-xs text-gray-400 mt-2">包含全套航太碳纖維套件與首年免費賽道神經網路連線。</p>
+                    </div>
+
+                    <button onclick="openBookingModal()" class="btn-cyber w-full py-4 text-black font-bold rounded-xl text-center shadow-lg">
+                        確認配置並送出訂單
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom Call to Action (CTA) Section -->
+    <section id="final-cta" class="py-24 relative bg-gradient-to-b from-slate-950 via-[#0a0f1d] to-slate-950 border-t border-cyan-500/30 overflow-hidden">
+        <!-- Background Holographic Grid & Neon Glow Overlay -->
+        <div class="absolute inset-0 holo-grid opacity-30 pointer-events-none"></div>
+        <div class="absolute -bottom-24 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-cyan-500/15 blur-[120px] rounded-full pointer-events-none"></div>
+
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-8">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-400 text-xs font-mono font-bold uppercase tracking-widest">
+                <i class="fa-solid fa-rocket"></i> NEXT-GEN HYPERCAR ERA
+            </div>
+
+            <h2 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight">
+                準備好駕馭未來了嗎？ <br>
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 glow-text">
+                    開啟您的 AETHER-X 專屬極速旅程
+                </span>
+            </h2>
+
+            <p class="text-gray-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+                2026 全球限量配額優先預訂中。即刻預訂專屬座駕或深入探索量子聚變核心數據，體驗人車合一的極致性能。
+            </p>
+
+            <!-- Bottom CTA Action Buttons -->
+            <div class="flex flex-wrap items-center justify-center gap-5 pt-4">
+                <button onclick="openBookingModal()" class="btn-cyber text-black font-extrabold text-base px-9 py-4 rounded-xl flex items-center gap-3 shadow-xl shadow-cyan-500/30 transition-transform hover:scale-105">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span>立即購買 / 預訂車款</span>
+                </button>
+                
+                <a href="#telemetry" class="glass-panel text-white font-bold text-base px-8 py-4 rounded-xl border border-cyan-400/40 hover:border-cyan-400 hover:bg-cyan-500/10 transition-all flex items-center gap-3 group">
+                    <i class="fa-solid fa-circle-info text-cyan-400 group-hover:rotate-12 transition-transform"></i>
+                    <span>了解更多規格</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Modal Overlay -->
+    <div id="booking-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="glass-panel max-w-lg w-full p-8 rounded-3xl border border-cyan-500/40 relative shadow-2xl">
+            <button onclick="closeBookingModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-2xl font-black mb-2 text-white">預訂 AETHER-X 專屬試駕</h3>
+            <p class="text-xs text-gray-400 mb-6">請填寫您的聯絡資訊，我們的私營專員將於 24 小時內與您聯繫。</p>
+
+            <form onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="text-xs text-gray-300 block mb-1">貴賓姓名</label>
+                    <input type="text" required placeholder="請輸入您的姓名" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-400 text-white">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-300 block mb-1">電子郵件</label>
+                    <input type="email" required placeholder="name@example.com" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-400 text-white">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-300 block mb-1">聯絡電話</label>
+                    <input type="tel" required placeholder="+886 912 345 678" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-400 text-white">
+                </div>
+                <button type="submit" class="btn-cyber w-full py-3.5 text-black font-bold rounded-xl text-sm shadow-lg mt-2">
+                    立即送出預約
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-white/10 py-12 text-gray-500 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <div class="w-7 h-7 rounded-lg bg-cyan-400 flex items-center justify-center text-black font-black">Æ</div>
+                <span class="text-gray-300 font-bold">AETHER-X // FUSION PROPULSION</span>
+            </div>
+            <span>© 2026 AETHER Mobility. All rights reserved.</span>
+            <a href="#overview" class="text-cyan-400 hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-arrow-up"></i> 返回頂部
+            </a>
+        </div>
+    </footer>
+
+    <!-- Three.js Setup & Interactive Scripts -->
+    <script>
+        /* PARALLAX SCROLL & DYNAMIC BANNER SCROLL EFFECT */
+        function initParallaxEffects() {
+            const container = document.getElementById('parallax-container');
+            const carImg = document.getElementById('parallax-car-img');
+            const heroContent = document.getElementById('hero-content-wrapper');
+
+            if (!container || !carImg) return;
+
+            // 1. Dynamic Banner Scroll Effect (Smooth zoom-in car + upward fade-out text)
+            window.addEventListener('scroll', () => {
+                const scrolled = window.scrollY;
+                const heroHeight = window.innerHeight;
+
+                if (scrolled <= heroHeight * 1.2) {
+                    // Parallax displacement & smooth zoom on background vehicle
+                    const carY = scrolled * 0.35;
+                    const carScale = 1.1 + (scrolled / heroHeight) * 0.18;
+                    carImg.style.transform = `translateY(${carY}px) scale(${carScale})`;
+                    
+                    // Smooth text fade out and slide up as user scrolls down
+                    if (heroContent) {
+                        const opacity = Math.max(0, 1 - (scrolled / (heroHeight * 0.65)));
+                        const textY = scrolled * -0.3;
+                        heroContent.style.opacity = opacity;
+                        heroContent.style.transform = `translateY(${textY}px)`;
+                    }
+                }
+            });
+
+            // 2. Cursor Parallax Shift Effect
+            window.addEventListener('mousemove', (e) => {
+                if (window.scrollY > window.innerHeight) return;
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+
+                const moveX = (e.clientX - centerX) * 0.012;
+                const moveY = (e.clientY - centerY) * 0.012;
+
+                const scrolled = window.scrollY;
+                const carY = scrolled * 0.35;
+                const carScale = 1.1 + (scrolled / window.innerHeight) * 0.18;
+
+                carImg.style.transform = `translateY(${carY}px) translate(${moveX}px, ${moveY}px) scale(${carScale})`;
+            });
+        }
+
+        /* HUD DIAGNOSTIC SWITCHER LOGIC */
+        function switchHudMode(mode) {
+            const node = document.getElementById('hud-node');
+            const title = document.getElementById('hud-status-title');
+            const desc = document.getElementById('hud-description');
+
+            ['fusion', 'aero', 'battery'].forEach(m => {
+                const btn = document.getElementById(`hud-btn-${m}`);
+                if (btn) btn.className = "w-full p-3.5 rounded-xl border border-white/10 bg-slate-900/50 text-gray-300 font-bold text-xs flex items-center justify-between transition-all hover:border-cyan-500/50";
+            });
+
+            const activeBtn = document.getElementById(`hud-btn-${mode}`);
+            if (activeBtn) activeBtn.className = "w-full p-3.5 rounded-xl border border-cyan-400 bg-cyan-500/20 text-cyan-300 font-bold text-xs flex items-center justify-between transition-all";
+
+            if (mode === 'fusion') {
+                title.textContent = 'SYSTEM: FUSION_PROPULSION_ONLINE';
+                desc.textContent = '> 四獨立電磁馬達發揮 100% 扭力向量分配。即時監測各輪端抓力與滑移率。';
+                if(node) node.setAttribute('fill', '#00f0ff');
+            } else if (mode === 'aero') {
+                title.textContent = 'SYSTEM: ACTIVE_AERO_BALANCED';
+                desc.textContent = '> 主動式尾翼與車底氣流引導通道啟動，於極速 350 KM/H 下提供 650 KG 強勁下壓力。';
+                if(node) node.setAttribute('fill', '#7000ff');
+            } else if (mode === 'battery') {
+                title.textContent = 'SYSTEM: QUANTUM_CELL_THERMAL_OK';
+                desc.textContent = '> 固態量子電芯內部熱分佈均勻，冷卻迴路持續運作，充電狀態健康度 100%。';
+                if(node) node.setAttribute('fill', '#10b981');
+            }
+        }
+
+        /* DRIVE MODE SIMULATOR */
+        function setDriveMode(mode) {
+            ['eco', 'sport', 'track'].forEach(m => {
+                const btn = document.getElementById(`mode-${m}`);
+                if (btn) btn.className = "py-2.5 px-2 rounded-xl text-xs font-bold border border-white/10 bg-slate-900 text-gray-400 hover:text-white transition-all";
+            });
+
+            const activeBtn = document.getElementById(`mode-${mode}`);
+            if (activeBtn) activeBtn.className = "py-2.5 px-2 rounded-xl text-xs font-bold border border-cyan-400 bg-cyan-500/20 text-cyan-300 transition-all";
+
+            const gVal = document.getElementById('g-force-val');
+            const gDot = document.getElementById('g-dot');
+
+            if (mode === 'eco' && gVal && gDot) {
+                gVal.textContent = '0.95 G';
+                gDot.style.transform = 'translate(0px, 0px)';
+            } else if (mode === 'sport' && gVal && gDot) {
+                gVal.textContent = '1.85 G';
+                gDot.style.transform = 'translate(6px, -4px)';
+            } else if (mode === 'track' && gVal && gDot) {
+                gVal.textContent = '2.45 G';
+                gDot.style.transform = 'translate(12px, -8px)';
+            }
+        }
+
+        /* MODAL LOGIC */
+        function openBookingModal() {
+            document.getElementById('booking-modal').classList.remove('hidden');
+        }
+
+        function closeBookingModal() {
+            document.getElementById('booking-modal').classList.add('hidden');
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            alert('感謝您的預約！AETHER 專屬經理將儘快與您聯繫。');
+            closeBookingModal();
+        }
+
+        /* PAGE INITIALIZATION */
+        window.onload = function() {
+            initParallaxEffects();
+            setDriveMode('sport');
+        };
+    </script>
+</body>
+</html>
